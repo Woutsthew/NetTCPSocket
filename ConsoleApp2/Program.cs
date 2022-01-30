@@ -22,12 +22,17 @@ namespace ConsoleApp2
             client.OnError += Client_OnError;
             client.Connect();
 
-            while(true)
+            try
             {
-                string msg = Console.ReadLine();
-                Message request = new Message(msg);
-                client.Send(request);
+                while (true)
+                {
+                    string msg = Console.ReadLine();
+                    Message request = new Message(msg);
+                    client.Send(request);
+                }
             }
+            catch (Exception e) { Console.WriteLine(e.Message); }
+            
         }
 
         #region event client

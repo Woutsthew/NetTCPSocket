@@ -25,7 +25,9 @@ namespace NetTCPSocket.TCPServer
 
         private const string EndMessage = "<EOF>";
 
-        string disconnect = "Не удается прочитать данные из транспортного соединения: Удаленный хост принудительно разорвал существующее подключение.";
+        private string Terminated = "Не удается прочитать данные из транспортного соединения: Удаленный хост принудительно разорвал существующее подключение.";
+
+        private string LiquidatedObject = "Доступ к ликвидированному объекту невозможен.\r\nИмя объекта: \"System.Net.Sockets.NetworkStream\".";
 
         #endregion
 
@@ -103,7 +105,7 @@ namespace NetTCPSocket.TCPServer
                     }
                 }
             }
-            catch (Exception e) { if (e.Message != disconnect) OnError(this, e); Disconnect(); }
+            catch (Exception e) { if (e.Message != Terminated && e.Message != LiquidatedObject) OnError(this, e); if (e.Message != LiquidatedObject) Disconnect(); }
         }
 
         private void Receive()
@@ -133,7 +135,7 @@ namespace NetTCPSocket.TCPServer
 
         #endregion
 
-        protected internal void Disconnect()
+        public void Disconnect()
         {
             server.RemoveSession(this.Id);
             if (Stream != null) Stream.Close();

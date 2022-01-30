@@ -47,6 +47,11 @@ namespace ConsoleApp1
                     return new Message("hello");
                 else if (command == "2")
                     return new Message("привет");
+                else if (command == "!")
+                {
+                    session.Disconnect();
+                    return null;
+                }
                 else
                     return new Message("what?");
             }
