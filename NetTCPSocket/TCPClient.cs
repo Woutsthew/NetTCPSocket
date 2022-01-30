@@ -76,7 +76,7 @@ namespace NetTCPSocket.TCPClient
             return false;
         }
 
-        public void Disconnect()
+        private void Disconnect()
         {
             OnDisconnected(this);
             if (receiveThread != null) receiveThread.Abort();
