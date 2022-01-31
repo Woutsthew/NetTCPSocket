@@ -23,9 +23,9 @@ namespace NetTCPSocket.TCPServer
         #endregion
 
         #region Event
-        protected virtual void OnConnected(TCPSession session) { }
+        protected internal virtual void OnConnected(TCPSession session) { }
 
-        protected virtual void OnDisconnected(TCPSession session) { }
+        protected internal virtual void OnDisconnected(TCPSession session) { }
 
         #endregion
 
@@ -80,7 +80,6 @@ namespace NetTCPSocket.TCPServer
                 TcpClient tcpClient = tcpListener.AcceptTcpClient();
                 TCPSession tcpsession = CreateSession();
                 tcpsession.session = tcpClient;
-                OnConnected(tcpsession);
 
                 Thread clientThread = new Thread(new ThreadStart(tcpsession.ProcessReceive));
                 clientThread.Start();
@@ -105,10 +104,7 @@ namespace NetTCPSocket.TCPServer
         {
             TCPSession session = Sessions.FirstOrDefault(c => c.Id == id);
             if (session != null)
-            {
                 Sessions.Remove(session);
-                OnDisconnected(session);
-            }
         }
 
         #endregion

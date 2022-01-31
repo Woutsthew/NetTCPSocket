@@ -26,8 +26,6 @@ namespace NetTCPSocket.TCPClient
 
         private Queue<string> QueueMessages { get; set; } = new Queue<string>();
 
-        private const string EndMessage = "<EOF>";
-
         #endregion
 
         #region Handler and Event
@@ -38,11 +36,11 @@ namespace NetTCPSocket.TCPClient
 
         public event InfoHandler OnDisconnected;
 
-        public delegate void MessageHandler(Message message, TCPClient client);
+        public delegate void MessageHandler(TCPClient client, Message message);
 
         public event MessageHandler OnMessage;
 
-        public delegate void ErrorHandler(Exception e);
+        public delegate void ErrorHandler(TCPClient client, Exception e);
 
         public event ErrorHandler OnError;
 
@@ -58,11 +56,14 @@ namespace NetTCPSocket.TCPClient
 
         #region Connect/Disconnect
 
+        public bool isConnected { get; private set; }
+
         public bool Connect()
         {
             client = new TcpClient();
             client.Connect(IP_Address, Port);
             Stream = client.GetStream();
+            isConnected = true;
 
             if (KeyExchange() == true)
             {
@@ -76,10 +77,15 @@ namespace NetTCPSocket.TCPClient
             return false;
         }
 
-        private void Disconnect()
+        public void Disconnect()
         {
-            OnDisconnected(this);
-            if (receiveThread != null) receiveThread.Abort();
+            Send(new Message("", CommandMessage.DisconnectMessage));
+            Abort();
+        }
+
+        private void Abort()
+        {
+            OnDisconnected(this); isConnected = false;
             if (Stream != null) Stream.Close();
             if (client != null) client.Close();
         }
@@ -94,7 +100,7 @@ namespace NetTCPSocket.TCPClient
             {
                 Message request = new Message(CommandType.CONNECT, rsa.PublicKey);
 
-                SendKey(request);
+                Send(JsonConvert.SerializeObject(request));
 
                 Receive();
 
@@ -109,7 +115,11 @@ namespace NetTCPSocket.TCPClient
                     }
                 }
             }
-            catch (Exception e) { OnError?.Invoke(e); Disconnect(); }
+            catch (Exception e)
+            {
+                if (e.Message == CommandMessage.HostTerminated && e.Message == CommandMessage.ClientTerminated) { Abort(); }
+                else { OnError?.Invoke(this, e); Disconnect(); }
+            }
             return false;
         }
 
@@ -117,18 +127,23 @@ namespace NetTCPSocket.TCPClient
         {
             try
             {
-                while (true)
+                while (isConnected == true)
                 {
                     Receive();
 
                     while (QueueMessages.Count != 0)
                     {
                         var request = JsonConvert.DeserializeObject<Message>(aes.Decrypt(QueueMessages.Dequeue()));
-                        OnMessage?.Invoke(request, this);
+                        if (request.value == CommandMessage.DisconnectMessage) { Abort(); break; }
+                        OnMessage?.Invoke(this, request);
                     }
                 }
             }
-            catch (Exception e) { OnError?.Invoke(e); Disconnect(); }
+            catch (Exception e)
+            {
+                if (e.Message == CommandMessage.HostTerminated && e.Message == CommandMessage.ClientTerminated) { Abort(); }
+                else { OnError?.Invoke(this, e); Disconnect(); }
+            }
         }
 
         private void Receive()
@@ -143,7 +158,7 @@ namespace NetTCPSocket.TCPClient
             }
             while (Stream.DataAvailable);
 
-            foreach (string message in builder.ToString().Split(new string[] { EndMessage }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string message in builder.ToString().Split(new string[] { CommandMessage.EndMessage }, StringSplitOptions.RemoveEmptyEntries))
             {
                 QueueMessages.Enqueue(message);
             }
@@ -152,14 +167,13 @@ namespace NetTCPSocket.TCPClient
         public void Send(Message message)
         {
             string msg = JsonConvert.SerializeObject(message);
-            byte[] data = Encoding.Unicode.GetBytes(aes.Encrypt(msg) + EndMessage);
-            Stream.Write(data, 0, data.Length);
+            Send(aes.Encrypt(msg));
         }
 
-        private void SendKey(Message message)
+        private void Send(string message)
         {
-            string msg = JsonConvert.SerializeObject(message);
-            byte[] data = Encoding.Unicode.GetBytes(msg + EndMessage);
+            if (isConnected == false) return;
+            byte[] data = Encoding.Unicode.GetBytes(message + CommandMessage.EndMessage);
             Stream.Write(data, 0, data.Length);
         }
 

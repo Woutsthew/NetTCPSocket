@@ -23,18 +23,11 @@ namespace NetTCPSocket.TCPServer
 
         private Queue<string> QueueMessages { get; set; } = new Queue<string>();
 
-        private const string EndMessage = "<EOF>";
-
-        private string ClientTerminated = "Не удается прочитать данные из транспортного соединения: Удаленный хост принудительно разорвал существующее подключение.";
-        private string HostTerminated = "Не удается прочитать данные из транспортного соединения: Программа на вашем хост-компьютере разорвала установленное подключение.";
-
-        private string LiquidatedObject = "Доступ к ликвидированному объекту невозможен.\r\nИмя объекта: \"System.Net.Sockets.NetworkStream\".";
-
         #endregion
 
         #region Event
 
-        protected virtual Message OnMessage(TCPSession session, Message message) { return new Message(); }
+        protected virtual void OnMessage(TCPSession session, Message message) { }
 
         protected virtual void OnError(TCPSession session, Exception e) { }
 
@@ -46,6 +39,26 @@ namespace NetTCPSocket.TCPServer
             server = serverObject;
             serverObject.AddSession(this);
         }
+
+        #region Connect/Disconnect
+
+        public bool isConnected { get; private set; }
+
+        public void Disconnect()
+        {
+            Send(new Message("", CommandMessage.DisconnectMessage));
+            Abort();
+        }
+
+        private void Abort()
+        {
+            server.RemoveSession(this.Id);
+            server.OnDisconnected(this); isConnected = false;
+            if (Stream != null) Stream.Close();
+            if (session != null) session.Close();
+        }
+
+        #endregion
 
         #region Receive/Send
 
@@ -64,7 +77,8 @@ namespace NetTCPSocket.TCPServer
                     if (isSuccess)
                     {
                         Message responce = new Message(CommandType.ACCEPTED, aes.Key_IV);
-                        Send(responce, rsa);
+                        string responceKey = JsonConvert.SerializeObject(responce);
+                        Send(rsa.Encrypt(responceKey));
                         break;
                     }
                 }
@@ -92,23 +106,27 @@ namespace NetTCPSocket.TCPServer
             {
                 Stream = session.GetStream();
 
+                isConnected = true;
                 KeyExchange();
+                server.OnConnected(this);
 
-                while (true)
+                while (isConnected == true)
                 {
                     Receive();
 
                     while (QueueMessages.Count != 0)
                     {
                         var request = JsonConvert.DeserializeObject<Message>(aes.Decrypt(QueueMessages.Dequeue()));
-                        Message responce = OnMessage(this, request);
-                        Send(responce, aes);
+                        if (request.value == CommandMessage.DisconnectMessage) { Abort(); break; }
+                        OnMessage(this, request);
                     }
                 }
             }
             catch (Exception e)
-            {   if (e.Message != HostTerminated && e.Message != ClientTerminated && e.Message != LiquidatedObject) OnError(this, e);
-                if (e.Message != LiquidatedObject) Disconnect(); }
+            {
+                if (e.Message == CommandMessage.HostTerminated && e.Message == CommandMessage.ClientTerminated) { Abort();}
+                else { OnError(this, e); Disconnect(); }
+            }
         }
 
         private void Receive()
@@ -123,27 +141,26 @@ namespace NetTCPSocket.TCPServer
             }
             while (Stream.DataAvailable);
 
-            foreach (string message in builder.ToString().Split(new string[] { EndMessage }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string message in builder.ToString().Split(new string[] { CommandMessage.EndMessage }, StringSplitOptions.RemoveEmptyEntries))
             {
                 QueueMessages.Enqueue(message);
             }
         }
 
-        private void Send(Message message, ICrypto cryptor)
+        public void Send(Message message)
         {
             string msg = JsonConvert.SerializeObject(message);
-            byte[] data = Encoding.Unicode.GetBytes(cryptor.Encrypt(msg) + EndMessage);
+            Send(aes.Encrypt(msg));
+        }
+
+        private void Send(string message)
+        {
+            if (isConnected == false) return;
+            byte[] data = Encoding.Unicode.GetBytes(message + CommandMessage.EndMessage);
             Stream.Write(data, 0, data.Length);
         }
 
         #endregion
-
-        public void Disconnect()
-        {
-            server.RemoveSession(this.Id);
-            if (Stream != null) Stream.Close();
-            if (session != null) session.Close();
-        }
 
         public void Dispose() { Disconnect(); }
     }

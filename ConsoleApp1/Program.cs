@@ -37,23 +37,24 @@ namespace ConsoleApp1
         {
             public ChatSession(TCPServer server) : base(server) { }
 
-            protected override Message OnMessage(TCPSession session, Message message)
+            protected override void OnMessage(TCPSession session, Message message)
             {
                 Console.WriteLine("Message from " + session.Id + ": " + message.GetAllCommand());
 
                 string command = message.Dequeue();
 
+                Message responce = new Message();
+
                 if (command == "1")
-                    return new Message("hello");
+                    responce = new Message("hello");
                 else if (command == "2")
-                    return new Message("привет");
+                    responce = new Message("привет");
                 else if (command == "!")
-                {
                     session.Disconnect();
-                    return null;
-                }
                 else
-                    return new Message("what?");
+                    responce = new Message("what?");
+
+                session.Send(responce);
             }
 
             protected override void OnError(TCPSession session, Exception e)

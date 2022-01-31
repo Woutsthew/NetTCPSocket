@@ -20,19 +20,21 @@ namespace ConsoleApp2
             client.OnDisconnected += Client_OnDisconnected;
             client.OnMessage += Client_OnMessage;
             client.OnError += Client_OnError;
-            client.Connect();
+            if (client.Connect() == false) return;
 
             try
             {
-                while (true)
+                while (client.isConnected == true)
                 {
                     string msg = Console.ReadLine();
+                    if (msg == "dis") client.Disconnect();
                     Message request = new Message(msg);
                     client.Send(request);
                 }
             }
             catch (Exception e) { Console.WriteLine(e.Message); }
-            
+
+            Console.ReadKey();
         }
 
         #region event client
@@ -47,14 +49,14 @@ namespace ConsoleApp2
             Console.WriteLine("Disconnected...");
         }
 
-        private static void Client_OnMessage(Message message, TCPClient session)
+        private static void Client_OnMessage(TCPClient session, Message message)
         {
             Console.WriteLine(message.GetAllCommand());
         }
 
-        private static void Client_OnError(Exception e)
+        private static void Client_OnError(TCPClient session, Exception e)
         {
-            Console.WriteLine(e.Message);
+            Console.WriteLine(e.Message + e.Source + e.TargetSite + e.StackTrace + e.InnerException);
         }
 
         #endregion
