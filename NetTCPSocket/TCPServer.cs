@@ -86,10 +86,10 @@ namespace NetTCPSocket.TCPServer
             }
         }
 
-        protected void DisconnectAll()
+        public void DisconnectAll()
         {
-            for (int i = 0; i < Sessions.Count; i++)
-                Sessions[i].Disconnect();
+            for ( ;Sessions.Count > 0; )
+                Sessions[0].Disconnect();
         }
 
         #endregion

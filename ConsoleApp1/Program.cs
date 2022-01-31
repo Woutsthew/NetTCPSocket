@@ -20,6 +20,10 @@ namespace ConsoleApp1
             srv.Start();
 
             Console.ReadKey();
+
+            srv.DisconnectAll();
+
+            Console.ReadKey();
         }
 
         public class ChatServer : TCPServer

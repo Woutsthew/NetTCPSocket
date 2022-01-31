@@ -80,12 +80,14 @@ namespace NetTCPSocket.TCPClient
         public void Disconnect()
         {
             Send(new Message("", CommandMessage.DisconnectMessage));
-            Abort();
+            Abort(true);
         }
 
-        private void Abort()
+        private void Abort(bool triggerEvent)
         {
-            OnDisconnected(this); isConnected = false;
+            if (triggerEvent == true)
+                OnDisconnected(this);
+            isConnected = false;
             if (Stream != null) Stream.Close();
             if (client != null) client.Close();
         }
@@ -117,7 +119,8 @@ namespace NetTCPSocket.TCPClient
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.ClientTerminated) { Abort(); }
+                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.WSATerminated) { Abort(false); }
+                else if (e.Message == CommandMessage.ClientTerminated) { Abort(true); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
             return false;
@@ -134,14 +137,15 @@ namespace NetTCPSocket.TCPClient
                     while (QueueMessages.Count != 0)
                     {
                         var request = JsonConvert.DeserializeObject<Message>(aes.Decrypt(QueueMessages.Dequeue()));
-                        if (request.value == CommandMessage.DisconnectMessage) { Abort(); break; }
+                        if (request.value == CommandMessage.DisconnectMessage) { Abort(true); break; }
                         OnMessage?.Invoke(this, request);
                     }
                 }
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.ClientTerminated) { Abort(); }
+                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.WSATerminated) { Abort(false); }
+                else if (e.Message == CommandMessage.ClientTerminated) { Abort(true); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
         }

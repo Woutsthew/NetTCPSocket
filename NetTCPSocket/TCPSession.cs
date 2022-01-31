@@ -47,13 +47,15 @@ namespace NetTCPSocket.TCPServer
         public void Disconnect()
         {
             Send(new Message("", CommandMessage.DisconnectMessage));
-            Abort();
+            Abort(true);
         }
 
-        private void Abort()
+        private void Abort(bool triggerEvent)
         {
             server.RemoveSession(this.Id);
-            server.OnDisconnected(this); isConnected = false;
+            if (triggerEvent == true)
+                server.OnDisconnected(this);
+            isConnected = false;
             if (Stream != null) Stream.Close();
             if (session != null) session.Close();
         }
@@ -117,14 +119,15 @@ namespace NetTCPSocket.TCPServer
                     while (QueueMessages.Count != 0)
                     {
                         var request = JsonConvert.DeserializeObject<Message>(aes.Decrypt(QueueMessages.Dequeue()));
-                        if (request.value == CommandMessage.DisconnectMessage) { Abort(); break; }
+                        if (request.value == CommandMessage.DisconnectMessage) { Abort(true); break; }
                         OnMessage(this, request);
                     }
                 }
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.ClientTerminated) { Abort();}
+                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.WSATerminated) { Abort(false); }
+                else if (e.Message == CommandMessage.ClientTerminated) { Abort(true); }
                 else { OnError(this, e); Disconnect(); }
             }
         }
