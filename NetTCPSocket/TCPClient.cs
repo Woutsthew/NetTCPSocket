@@ -117,7 +117,7 @@ namespace NetTCPSocket.TCPClient
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated && e.Message == CommandMessage.ClientTerminated) { Abort(); }
+                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.ClientTerminated) { Abort(); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
             return false;
@@ -141,7 +141,7 @@ namespace NetTCPSocket.TCPClient
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated && e.Message == CommandMessage.ClientTerminated) { Abort(); }
+                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.ClientTerminated) { Abort(); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
         }

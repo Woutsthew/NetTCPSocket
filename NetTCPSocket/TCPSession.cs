@@ -124,7 +124,7 @@ namespace NetTCPSocket.TCPServer
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated && e.Message == CommandMessage.ClientTerminated) { Abort();}
+                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.ClientTerminated) { Abort();}
                 else { OnError(this, e); Disconnect(); }
             }
         }
