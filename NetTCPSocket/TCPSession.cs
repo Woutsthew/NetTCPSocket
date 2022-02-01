@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using Crypto;
+using System.Threading;
+using System.IO;
 
 namespace NetTCPSocket.TCPServer
 {
@@ -52,15 +54,13 @@ namespace NetTCPSocket.TCPServer
         public void Disconnect()
         {
             Send(new Message("", CommandMessage.DisconnectMessage));
-            Abort(true);
+            Abort();
         }
 
-        private void Abort(bool triggerEvent)
+        private void Abort()
         {
             server.RemoveSession(this.Id);
-            if (triggerEvent == true)
-                OnDisconnected(this);
-            isConnected = false;
+            OnDisconnected(this); isConnected = false;
             if (Stream != null) Stream.Close();
             if (client != null) client.Close();
         }
@@ -124,15 +124,14 @@ namespace NetTCPSocket.TCPServer
                     while (QueueMessages.Count != 0)
                     {
                         var request = JsonConvert.DeserializeObject<Message>(aes.Decrypt(QueueMessages.Dequeue()));
-                        if (request.value == CommandMessage.DisconnectMessage) { Abort(true); break; }
+                        if (request.value == CommandMessage.DisconnectMessage) { Abort(); break; }
                         OnMessage(this, request);
                     }
                 }
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.WSATerminated) { Abort(false); }
-                else if (e.Message == CommandMessage.ClientTerminated) { Abort(true); }
+                if (e is IOException) { Abort(); }
                 else { OnError(this, e); Disconnect(); }
             }
         }

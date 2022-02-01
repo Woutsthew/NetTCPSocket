@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -80,14 +81,12 @@ namespace NetTCPSocket.TCPClient
         public void Disconnect()
         {
             Send(new Message("", CommandMessage.DisconnectMessage));
-            Abort(true);
+            Abort();
         }
 
-        private void Abort(bool triggerEvent)
+        private void Abort()
         {
-            if (triggerEvent == true)
-                OnDisconnected?.Invoke(this);
-            isConnected = false;
+            OnDisconnected?.Invoke(this); isConnected = false;
             if (Stream != null) Stream.Close();
             if (client != null) client.Close();
         }
@@ -119,8 +118,7 @@ namespace NetTCPSocket.TCPClient
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.WSATerminated) { Abort(false); }
-                else if (e.Message == CommandMessage.ClientTerminated) { Abort(true); }
+                if (e is IOException) { Abort(); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
             return false;
@@ -137,15 +135,14 @@ namespace NetTCPSocket.TCPClient
                     while (QueueMessages.Count != 0)
                     {
                         var request = JsonConvert.DeserializeObject<Message>(aes.Decrypt(QueueMessages.Dequeue()));
-                        if (request.value == CommandMessage.DisconnectMessage) { Abort(true); break; }
+                        if (request.value == CommandMessage.DisconnectMessage) { Abort(); break; }
                         OnMessage?.Invoke(this, request);
                     }
                 }
             }
             catch (Exception e)
             {
-                if (e.Message == CommandMessage.HostTerminated || e.Message == CommandMessage.WSATerminated) { Abort(false); }
-                else if (e.Message == CommandMessage.ClientTerminated) { Abort(true); }
+                if (e is IOException) { Abort(); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
         }

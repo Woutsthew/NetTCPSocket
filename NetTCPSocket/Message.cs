@@ -52,6 +52,6 @@ namespace NetTCPSocket
 
         public void Enqueue(string command) { commands.Enqueue(command); }
 
-        public string GetAllCommand(string separator = " ") => String.Join(separator, commands.ToArray()) + (value.Length != 0 ? ":" + value : "");
+        public string GetAllCommand(string separator = " ") => String.Join(separator, commands.ToArray()) + (value == null ? "" : value.Length != 0 ? ":" + value : "");
     }
 }

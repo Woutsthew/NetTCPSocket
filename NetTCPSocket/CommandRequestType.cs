@@ -27,13 +27,5 @@ namespace NetTCPSocket
     {
         protected internal const string EndMessage = "<EOF>";
         protected internal const string DisconnectMessage = "<DCT>";
-
-        protected internal const string ClientTerminated = "Не удается прочитать данные из транспортного соединения: Удаленный хост принудительно разорвал существующее подключение.";
-        protected internal const string HostTerminated = "Не удается прочитать данные из транспортного соединения: Программа на вашем хост-компьютере разорвала установленное подключение.";
-        protected internal const string WSATerminated = "Не удается прочитать данные из транспортного соединения: Операция блокирования прервана вызовом WSACancelBlockingCall.";
-
-        //protected internal const string LiquidatedObject = "Доступ к ликвидированному объекту невозможен.\r\nИмя объекта: \"System.Net.Sockets.NetworkStream\".";
-
-        //protected internal const string ThreadedTerminated = "Поток находился в процессе прерывания.";
     }
 }
