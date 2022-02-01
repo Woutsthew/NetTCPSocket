@@ -8,6 +8,8 @@ namespace NetTCPSocket
     {
         [JsonProperty] private Queue<string> commands { get; set; } = new Queue<string>();
 
+        public int Count { get { return commands.Count; } }
+
         [JsonProperty] public string value { get; set; } = "";
 
         public Message() { }
