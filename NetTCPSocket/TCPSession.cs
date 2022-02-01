@@ -13,9 +13,10 @@ namespace NetTCPSocket.TCPServer
         #region Variables
 
         public Guid Id { get; private set; }
-        public NetworkStream Stream { get; private set; }
         public TCPServer server { get; private set; }
-        protected internal TcpClient session { get; set; }
+        public TcpClient client { get; private set; }
+        protected internal TcpClient Client { get { return client; } set { client = value; } }
+        public NetworkStream Stream { get; private set; }
 
 
         private AES aes { get; set; } = new AES();
@@ -26,6 +27,10 @@ namespace NetTCPSocket.TCPServer
         #endregion
 
         #region Event
+
+        protected virtual void OnConnected(TCPSession session) { }
+
+        protected virtual void OnDisconnected(TCPSession session) { }
 
         protected virtual void OnMessage(TCPSession session, Message message) { }
 
@@ -54,10 +59,10 @@ namespace NetTCPSocket.TCPServer
         {
             server.RemoveSession(this.Id);
             if (triggerEvent == true)
-                server.OnDisconnected(this);
+                OnDisconnected(this);
             isConnected = false;
             if (Stream != null) Stream.Close();
-            if (session != null) session.Close();
+            if (client != null) client.Close();
         }
 
         #endregion
@@ -106,11 +111,11 @@ namespace NetTCPSocket.TCPServer
         {
             try
             {
-                Stream = session.GetStream();
+                Stream = client.GetStream();
 
                 isConnected = true;
                 KeyExchange();
-                server.OnConnected(this);
+                OnConnected(this);
 
                 while (isConnected == true)
                 {

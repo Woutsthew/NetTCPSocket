@@ -22,13 +22,6 @@ namespace NetTCPSocket.TCPServer
 
         #endregion
 
-        #region Event
-        public virtual void OnConnected(TCPSession session) { }
-
-        public virtual void OnDisconnected(TCPSession session) { }
-
-        #endregion
-
         public TCPServer(string address, int port) : this(IPAddress.Parse(address), port) { }
 
         public TCPServer(IPAddress address, int port)
@@ -79,7 +72,7 @@ namespace NetTCPSocket.TCPServer
             {
                 TcpClient tcpClient = tcpListener.AcceptTcpClient();
                 TCPSession tcpsession = CreateSession();
-                tcpsession.session = tcpClient;
+                tcpsession.Client = tcpClient;
 
                 Thread clientThread = new Thread(new ThreadStart(tcpsession.ProcessReceive));
                 clientThread.Start();

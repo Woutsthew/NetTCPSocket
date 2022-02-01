@@ -31,15 +31,15 @@ namespace ConsoleApp1
             public ChatServer(string address, int port) : base(address, port) { }
 
             protected override TCPSession CreateSession() { return new ChatSession(this); }
-
-            public override void OnConnected(TCPSession session) { Console.WriteLine("New connected: " + session.Id); }
-
-            public override void OnDisconnected(TCPSession session) { Console.WriteLine("Session disconnected: " + session.Id); }
         }
 
         public class ChatSession : TCPSession
         {
             public ChatSession(TCPServer server) : base(server) { }
+
+            protected override void OnConnected(TCPSession session) { Console.WriteLine("New connected: " + session.Id); }
+
+            protected override void OnDisconnected(TCPSession session) { Console.WriteLine("Session disconnected: " + session.Id); }
 
             protected override void OnMessage(TCPSession session, Message message)
             {
