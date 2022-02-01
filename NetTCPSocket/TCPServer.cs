@@ -23,9 +23,9 @@ namespace NetTCPSocket.TCPServer
         #endregion
 
         #region Event
-        protected internal virtual void OnConnected(TCPSession session) { }
+        public virtual void OnConnected(TCPSession session) { }
 
-        protected internal virtual void OnDisconnected(TCPSession session) { }
+        public virtual void OnDisconnected(TCPSession session) { }
 
         #endregion
 

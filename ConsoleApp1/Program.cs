@@ -32,9 +32,9 @@ namespace ConsoleApp1
 
             protected override TCPSession CreateSession() { return new ChatSession(this); }
 
-            protected override void OnConnected(TCPSession session) { Console.WriteLine("New connected: " + session.Id); }
+            public override void OnConnected(TCPSession session) { Console.WriteLine("New connected: " + session.Id); }
 
-            protected override void OnDisconnected(TCPSession session) { Console.WriteLine("Session disconnected: " + session.Id); }
+            public override void OnDisconnected(TCPSession session) { Console.WriteLine("Session disconnected: " + session.Id); }
         }
 
         public class ChatSession : TCPSession
