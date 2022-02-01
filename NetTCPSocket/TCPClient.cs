@@ -69,7 +69,7 @@ namespace NetTCPSocket.TCPClient
             {
                 receiveThread = new Thread(new ThreadStart(ReceiveProcess));
                 receiveThread.Start();
-                OnConnected(this);
+                OnConnected?.Invoke(this);
                 return true;
             }
 
@@ -86,7 +86,7 @@ namespace NetTCPSocket.TCPClient
         private void Abort(bool triggerEvent)
         {
             if (triggerEvent == true)
-                OnDisconnected(this);
+                OnDisconnected?.Invoke(this);
             isConnected = false;
             if (Stream != null) Stream.Close();
             if (client != null) client.Close();
