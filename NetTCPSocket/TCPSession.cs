@@ -21,8 +21,8 @@ namespace NetTCPSocket.TCPServer
         public NetworkStream Stream { get; private set; }
 
 
-        private AES aes { get; set; } = new AES();
-        private RSA rsa { get; set; }
+        public AES aes { get; private set; } = new AES();
+        public RSA rsa { get; private set; }
 
         private Queue<string> QueueMessages { get; set; } = new Queue<string>();
 

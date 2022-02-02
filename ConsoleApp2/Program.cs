@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NetTCPSocket.TCPClient;
 using NetTCPSocket;
+using Newtonsoft.Json;
 
 namespace ConsoleApp2
 {
@@ -52,6 +53,7 @@ namespace ConsoleApp2
         private static void Client_OnMessage(TCPClient session, Message message)
         {
             Console.WriteLine(message.GetAllCommand());
+            System.Data.DataTable dt = JsonConvert.DeserializeObject<System.Data.DataTable>(message.value);
         }
 
         private static void Client_OnError(TCPClient session, Exception e)
