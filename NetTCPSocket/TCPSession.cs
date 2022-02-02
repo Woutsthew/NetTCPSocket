@@ -138,7 +138,7 @@ namespace NetTCPSocket.TCPServer
 
         private void Receive()
         {
-            byte[] data = new byte[2048];
+            byte[] data = new byte[8192];
             StringBuilder builder = new StringBuilder();
             int bytes = 0;
             do
