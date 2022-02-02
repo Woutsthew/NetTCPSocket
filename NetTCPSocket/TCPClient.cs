@@ -149,7 +149,7 @@ namespace NetTCPSocket.TCPClient
 
         private void Receive()
         {
-            byte[] data = new byte[64];
+            byte[] data = new byte[2048];
             StringBuilder builder = new StringBuilder();
             int bytes = 0;
             do
