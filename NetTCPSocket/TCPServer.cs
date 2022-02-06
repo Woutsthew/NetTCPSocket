@@ -95,7 +95,7 @@ namespace NetTCPSocket.TCPServer
 
         protected internal void RemoveSession(Guid id)
         {
-            TCPSession session = Sessions.FirstOrDefault(c => c.Id == id);
+            TCPSession session = Sessions.Find(c => c.Id == id);
             if (session != null)
                 Sessions.Remove(session);
         }
