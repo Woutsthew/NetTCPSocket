@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using NetTCPSocket.TCPClient;
 using NetTCPSocket;
-using Newtonsoft.Json;
 
 namespace ConsoleApp2
 {
@@ -38,29 +37,12 @@ namespace ConsoleApp2
             Console.ReadKey();
         }
 
-        #region event client
+        private static void Client_OnConnected(TCPClient client) { Console.WriteLine("Connected..."); }
 
-        private static void Client_OnConnected(TCPClient client)
-        {
-            Console.WriteLine("Connected...");
-        }
+        private static void Client_OnDisconnected(TCPClient client) { Console.WriteLine("Disconnected..."); }
 
-        private static void Client_OnDisconnected(TCPClient client)
-        {
-            Console.WriteLine("Disconnected...");
-        }
+        private static void Client_OnMessage(TCPClient session, Message message) { Console.WriteLine(message.GetAllCommand()); }
 
-        private static void Client_OnMessage(TCPClient session, Message message)
-        {
-            Console.WriteLine(message.GetAllCommand());
-            System.Data.DataTable dt = JsonConvert.DeserializeObject<System.Data.DataTable>(message.value);
-        }
-
-        private static void Client_OnError(TCPClient session, Exception e)
-        {
-            Console.WriteLine(e.Message + e.Source + e.TargetSite + e.StackTrace + e.InnerException);
-        }
-
-        #endregion
+        private static void Client_OnError(TCPClient session, Exception e) { Console.WriteLine(e.Message + e.Source + e.TargetSite + e.StackTrace + e.InnerException); }
     }
 }
