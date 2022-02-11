@@ -131,7 +131,8 @@ namespace NetTCPSocket.TCPServer
             }
             catch (Exception e)
             {
-                if (e is IOException) { Abort(); }
+                if (e is ObjectDisposedException) { }
+                else if (e is IOException) { Abort(); }
                 else { OnError(this, e); Disconnect(); }
             }
         }

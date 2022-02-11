@@ -118,7 +118,8 @@ namespace NetTCPSocket.TCPClient
             }
             catch (Exception e)
             {
-                if (e is IOException) { Abort(); }
+                if (e is ObjectDisposedException) { }
+                else if (e is IOException) { Abort(); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
             return false;
@@ -142,7 +143,8 @@ namespace NetTCPSocket.TCPClient
             }
             catch (Exception e)
             {
-                if (e is IOException) { Abort(); }
+                if (e is ObjectDisposedException) { }
+                else if (e is IOException) { Abort(); }
                 else { OnError?.Invoke(this, e); Disconnect(); }
             }
         }
